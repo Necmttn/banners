@@ -8,8 +8,10 @@ import (
 	"github.com/oschwald/geoip2-golang"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"syscall"
 )
 
@@ -22,6 +24,7 @@ var (
 	nConnectFlag = flag.Int("concurrent", 5, "Number of concurrent connections")
 	formatFlag   = flag.String("format", "json", "Output format for responses ('ascii', 'hex', json, or 'base64')")
 	timeoutFlag  = flag.Int("timeout", 4, "Seconds to wait for each host to respond")
+	geoipDbFlag = flag.String("geoip", "", "Path to geoip db")
 	dataFileFlag = flag.String("data", "", "Directory containing protocol messages to send to responsive hosts ('%s' will be replaced with host IP)")
 	portMappingsFlag = flag.String("config", "", "Json file containing data file port mappings")
 )
@@ -30,7 +33,12 @@ var (
 func init() {
 	flag.Parse()
 
-	_geoipDB, err := geoip2.Open("./data/geoip/GeoLite2-City.mmdb")
+	dir, err := filepath.Abs(*geoipDbFlag)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_geoipDB, err := geoip2.Open(dir)
 	geoipDB = _geoipDB
 	if err != nil {
 		panic(err)
